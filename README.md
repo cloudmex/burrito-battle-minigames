@@ -1,4 +1,4 @@
-![Image text](https://github.com/cloudmex/burrito-battle/blob/master/assets/Logotipo.png)
+![Image text](https://github.com/cloudmex/burrito-battle-minigames/blob/master/assets/Logotipo.png)
 
 ## Descripción 📄
 Contratos inteligentes para los minijuegos de Burrito Battle.
