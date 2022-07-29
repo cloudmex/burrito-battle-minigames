@@ -15,9 +15,9 @@ near_sdk::setup_alloc!();
 
 pub type EpochHeight = u64;
 pub type TokenId = String;
-pub const BURRITO_CONTRACT: &str = "dev-1652924595303-59024384289373";
-pub const HOSPITAL_CONTRACT: &str = "dev-1658170507800-83790945510897";
-pub const STRWTOKEN_CONTRACT: &str = "dev-1653415145729-47929415561597";
+pub const BURRITO_CONTRACT: &str = "bb-burritos.testnet";
+pub const HOSPITAL_CONTRACT: &str = "bb-hospital.testnet";
+pub const STRWTOKEN_CONTRACT: &str = "bb-strw.testnet";
 
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(10_000_000_000_000);
 const GAS_FOR_NFT_TRANSFER_CALL: Gas = Gas(25_000_000_000_000 + GAS_FOR_RESOLVE_TRANSFER.0);
@@ -242,7 +242,7 @@ impl Contract {
                 let value = std::str::from_utf8(&result).unwrap();
                 let burrito: Burrito = serde_json::from_str(&value).unwrap();
 
-                if burrito.hp.parse::<u8>().unwrap() >= 0 {
+                if burrito.hp.parse::<u8>().unwrap() > 0 {
                     log!("El burrito aún tiene vidas");
                     return near_sdk::PromiseOrValue::Value(true); // Regresar burrito al jugador
                 }
@@ -259,11 +259,105 @@ impl Contract {
 
                 self.capsules.insert(player,capsules.clone());
 
-                return near_sdk::PromiseOrValue::Value(true); // Regresar al burrito
-                //return near_sdk::PromiseOrValue::Value(false); // No regresar al burrito
+                return near_sdk::PromiseOrValue::Value(false); // No regresar al burrito
             }
         }
     }
 
+    // Recuperar burrito
+    #[payable]
+    pub fn withdraw_burrito_owner(&mut self, capsule_number: u64) -> ClaimedBurrito {
+        let player = env::signer_account_id();
+        let deposit = env::attached_deposit();
     
+        let exist_capsules_player = self.capsules.get(&player);
+
+        if exist_capsules_player.is_none() {
+            log!("No hay ninguna capsula registrada");
+            let res = ClaimedBurrito{
+                complete : false,
+                msg : "No hay ninguna capsula registrada".to_string(),
+                burrito_id : "".to_string()
+            };
+            return res;
+        } else {
+            log!("Hay capsulas registradas");
+            log!("Capsula a retirar: {}",capsule_number);
+
+            let info = self.capsules.get(&player).unwrap();
+
+            let mut player_capsules = RecoveryCapsules {
+                count: info.count.clone(),
+                capsules: info.capsules.clone()
+            };
+
+            if capsule_number.clone()+1 > player_capsules.capsules.clone().len().try_into().unwrap() {
+                log!("No existe la capsula ingresada");
+                let res = ClaimedBurrito{
+                    complete : false,
+                    msg : "No existe la capsula ingresada".to_string(),
+                    burrito_id : "".to_string()
+                };
+                return res;
+            }
+
+            let capsule = Capsule {
+                burrito_id: player_capsules.capsules[capsule_number as usize].burrito_id.clone(),
+                burrito_owner: player_capsules.capsules[capsule_number as usize].burrito_owner.clone(),
+                burrito_contract: player_capsules.capsules[capsule_number as usize].burrito_contract.clone(),
+                start_time: player_capsules.capsules[capsule_number as usize].start_time.clone(),
+                finish_time: player_capsules.capsules[capsule_number as usize].finish_time.clone()
+            };
+
+            if player.clone() != capsule.burrito_owner.clone().parse::<AccountId>().unwrap(){
+                log!("No eres el dueño del burrito");
+                let res = ClaimedBurrito{
+                    complete : false,
+                    msg : "No eres el dueño del burrito".to_string(),
+                    burrito_id : "".to_string()
+                };
+                return res;
+            }
+            
+            let actual_epoch = env::block_timestamp();
+
+            if actual_epoch < capsule.finish_time {
+                log!("Aún no finaliza el tiempo de restauración");
+                let res = ClaimedBurrito{
+                    complete : false,
+                    msg : "Aún no finaliza el tiempo de restauración".to_string(),
+                    burrito_id : "".to_string()
+                };
+                return res;  
+            }
+
+            ext_nft::increase_all_burrito_hp(
+                capsule.burrito_id.clone(),
+                BURRITO_CONTRACT.parse::<AccountId>().unwrap(),
+                NO_DEPOSIT,
+                MIN_GAS_FOR_NFT_TRANSFER_CALL
+            ).then(ext_nft::nft_transfer(
+                player.clone(),
+                capsule.burrito_id.clone(),
+                capsule.burrito_contract.parse::<AccountId>().unwrap(),
+                deposit,
+                MIN_GAS_FOR_NFT_TRANSFER_CALL
+            ));
+
+            let res = ClaimedBurrito{
+                complete : true,
+                msg : "El burrito recuperó sus vidas".to_string(),
+                burrito_id : capsule.burrito_id.clone()
+            };
+
+            let mut new_capsules = player_capsules.capsules.clone();
+            new_capsules.swap_remove(capsule_number.clone().try_into().unwrap());
+            let new_count = player_capsules.count.clone() - 1;
+            player_capsules.count = new_count;
+            player_capsules.capsules = new_capsules;
+            self.capsules.insert(player.clone(),player_capsules.clone());
+
+            return res;  
+        }
+    }    
 }

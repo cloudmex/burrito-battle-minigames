@@ -32,20 +32,20 @@ Ejecute el siguiente comando dentro de cada carpeta (contracts) el cual generar�
 Asignamos el identificador de nuestro contrato desplegado a una constante (Sustituir el ID por el del contrato desplegado):
 
     Incursion
-    ID=dev-1657319025362-20400432440915
+    ID=bb-incursions.testnet
     echo $ID
 
     Hospital
-    ID=dev-1658170507800-83790945510897
+    ID=bb-hospital.testnet
     echo $ID
 
 Los contratos deben inicializarse antes de su uso, por lo que lo haremos con los siguientes comandos dependiendo del contrato:
 
     Incursion
-    near call $ID new '{"owner_account_id": "yairnava.testnet", "treasury_id": "darkyair.testnet"}' --accountId yairnava.testnet
+    near call $ID new '{"owner_account_id": "'$ID'", "treasury_id": "bb-treasury-incursions.testnet"}' --accountId $ID
 
     Hospital
-    near call $ID new '{"owner_account_id": "yairnava.testnet", "treasury_id": "darkyair.testnet", "cost_strw": 1000, "epoch_to_restore": 2}' --accountId yairnava.testnet
+    near call $ID new '{"owner_account_id": "'$ID'", "treasury_id": "bb-treasury-hospital.testne", "cost_strw": 1000, "epoch_to_restore": 2}' --accountId $ID
 
 ### Incursion
 
@@ -120,6 +120,10 @@ Ingresar burrito en capsula y Transferir nft
 Consultar capsulas del jugador
 
     near view $ID get_player_capsules '{"player": "yairnava.testnet"}'
+
+Recuperar burrito
+
+    near call $ID withdraw_burrito_owner '{"capsule_number": 0}' --accountId yairnava.testnet --depositYocto 1 --gas 300000000000000
 
 ## Construido con 🛠️
 

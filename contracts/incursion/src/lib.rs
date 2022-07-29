@@ -15,9 +15,9 @@ near_sdk::setup_alloc!();
 
 pub type EpochHeight = u64;
 pub type TokenId = String;
-pub const BURRITO_CONTRACT: &str = "dev-1652924595303-59024384289373";
-pub const INCURSION_CONTRACT: &str = "dev-1657319025362-20400432440915";
-pub const STRWTOKEN_CONTRACT: &str = "dev-1653415145729-47929415561597";
+pub const BURRITO_CONTRACT: &str = "bb-burritos.testnet";
+pub const INCURSION_CONTRACT: &str = "bb-incursions.testnet";
+pub const STRWTOKEN_CONTRACT: &str = "bb-strw.testnet";
 
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(10_000_000_000_000);
 const GAS_FOR_NFT_TRANSFER_CALL: Gas = Gas(25_000_000_000_000 + GAS_FOR_RESOLVE_TRANSFER.0);
@@ -25,7 +25,9 @@ const MIN_GAS_FOR_NFT_TRANSFER_CALL: Gas = Gas(100_000_000_000_000);
 const NO_DEPOSIT: Balance = 0;
 
 pub use crate::xcc::*;
+pub use crate::migrate::*;
 mod xcc;
+mod migrate;
 
 construct_uint! {
     pub struct U256(4);
@@ -184,6 +186,17 @@ pub struct PlayerInBattle {
     player_name: String,
     media: String,
     is_alive: bool
+}
+
+#[near_bindgen]
+#[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
+pub struct OldContract {
+    pub owner_account_id: AccountId,
+    pub treasury_id: AccountId,
+    pub incursions: HashMap<u64,Incursion>,
+    pub mb_vs_bp: HashMap<AccountId, BPvsMB>,
+    pub player_incursion: HashMap<AccountId, Player>,
+    pub last_id: u64
 }
 
 #[near_bindgen]

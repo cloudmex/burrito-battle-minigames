@@ -15,6 +15,7 @@ pub trait ExternsContract {
     );
     fn get_balance_and_transfer_hospital(&self,account_id: String, action: String, treasury_id: String, cost: u128) -> bool;
     fn get_burrito_capsule(&self,burrito_id: TokenId) -> Burrito;
+    fn increase_all_burrito_hp(&self,burrito_id: TokenId) -> String;
 }
 
 #[ext_contract(ext_self)]
