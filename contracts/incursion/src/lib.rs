@@ -1,7 +1,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use std::collections::HashMap;
 use near_sdk::collections::{LazyOption, LookupMap, UnorderedMap, UnorderedSet};
-use near_sdk::{env,ext_contract, Balance,Gas, near_bindgen, AccountId, PromiseOrValue, PromiseResult, PanicOnDefault, log, BorshStorageKey};
+use near_sdk::{env,ext_contract, Balance,Gas, near_bindgen, AccountId, PromiseOrValue, PromiseResult, PanicOnDefault, log, BorshStorageKey, require};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::serde_json::{json,from_str};
 use near_sdk::Promise;
@@ -15,9 +15,6 @@ near_sdk::setup_alloc!();
 
 pub type EpochHeight = u64;
 pub type TokenId = String;
-pub const BURRITO_CONTRACT: &str = "bb-burritos.testnet";
-pub const INCURSION_CONTRACT: &str = "bb-incursions.testnet";
-pub const STRWTOKEN_CONTRACT: &str = "bb-strw.testnet";
 
 const GAS_FOR_RESOLVE_TRANSFER: Gas = Gas(10_000_000_000_000);
 const GAS_FOR_NFT_TRANSFER_CALL: Gas = Gas(25_000_000_000_000 + GAS_FOR_RESOLVE_TRANSFER.0);
@@ -196,7 +193,11 @@ pub struct OldContract {
     pub incursions: HashMap<u64,Incursion>,
     pub mb_vs_bp: HashMap<AccountId, BPvsMB>,
     pub player_incursion: HashMap<AccountId, Player>,
-    pub last_id: u64
+    pub last_id: u64,
+
+    pub burrito_contract: String,
+    pub incursion_contract: String,
+    pub strw_contract: String
 }
 
 #[near_bindgen]
@@ -207,14 +208,18 @@ pub struct Contract {
     pub incursions: HashMap<u64,Incursion>,
     pub mb_vs_bp: HashMap<AccountId, BPvsMB>,
     pub player_incursion: HashMap<AccountId, Player>,
-    pub last_id: u64
+    pub last_id: u64,
+
+    pub burrito_contract: String,
+    pub incursion_contract: String,
+    pub strw_contract: String
 }
 
 #[near_bindgen]
 impl Contract {
     //Initialize the contract
     #[init]
-    pub fn new(owner_account_id: AccountId, treasury_id: AccountId) -> Self {
+    pub fn new(owner_account_id: AccountId, treasury_id: AccountId , burrito_contract: String, incursion_contract: String, strw_contract: String) -> Self {
         assert!(!env::state_exists(), "The contract is already initialized");
         let result = Self{
             owner_account_id,
@@ -222,9 +227,52 @@ impl Contract {
             incursions: HashMap::new(),
             mb_vs_bp: HashMap::new(),
             player_incursion: HashMap::new(),
-            last_id: 0
+            last_id: 0,
+            burrito_contract,
+            incursion_contract,
+            strw_contract
         };
         return result;
+    }
+
+    // Cambiar contratos
+    pub fn change_contracts(&mut self, burrito_contract: String, incursion_contract: String, strw_contract: String) {
+        self.assert_owner();
+        self.burrito_contract = burrito_contract;
+        self.incursion_contract = incursion_contract;
+        self.strw_contract = strw_contract;
+    }
+
+    // Cambiar owner
+    pub fn change_owner(&mut self, owner_account_id: AccountId) {
+        self.assert_owner();
+        self.owner_account_id = owner_account_id;
+    }
+
+    // Cambiar tesorero
+    pub fn change_treasury(&mut self, treasury_id: AccountId) {
+        self.assert_owner();
+        self.treasury_id = treasury_id;
+    }
+
+    // Verificar si es owner
+    fn assert_owner(&self) {
+        require!(self.signer_is_owner(), "Method is private to owner")
+    }
+
+    fn signer_is_owner(&self) -> bool {
+        self.is_owner(&env::predecessor_account_id())
+    }
+
+    fn is_owner(&self, minter: &AccountId) -> bool {
+        minter.as_str() == self.owner_account_id.as_str()
+    }
+
+    // Mostrar contratos
+    pub fn show_contracts(&self) {
+        log!("burrito_contract: {}",self.burrito_contract);
+        log!("incursion_contract: {}",self.incursion_contract);
+        log!("strw_contract: {}",self.strw_contract);
     }
 
     // Crear nueva incursión
@@ -746,7 +794,7 @@ impl Contract {
         // Consultar información del burrito
         let call = ext_nft::get_burrito_incursion(
             token_id.clone().to_string(),
-            BURRITO_CONTRACT.parse::<AccountId>().unwrap(),
+            self.burrito_contract.parse::<AccountId>().unwrap(),
             NO_DEPOSIT,
             Gas(100_000_000_000_000)
         );
@@ -755,7 +803,7 @@ impl Contract {
             active_incursion.clone(),
             new_player.clone(),
             contract_id.to_string(),
-            INCURSION_CONTRACT.parse::<AccountId>().unwrap(),
+            self.incursion_contract.parse::<AccountId>().unwrap(),
             NO_DEPOSIT,
             Gas(100_000_000_000_000)
         );
@@ -791,14 +839,14 @@ impl Contract {
                         player.burrito_owner.clone().to_string(),
                         "Incursion".to_string(),
                         self.treasury_id.to_string(),
-                        STRWTOKEN_CONTRACT.parse::<AccountId>().unwrap(),
+                        self.strw_contract.parse::<AccountId>().unwrap(),
                         NO_DEPOSIT,
                         Gas(60_000_000_000_000)
                     ).then(ext_self::register_player_incursion(
                         incursion.clone(),
                         player.clone(),
                         contract_id.to_string(),
-                        INCURSION_CONTRACT.parse::<AccountId>().unwrap(),
+                        self.incursion_contract.parse::<AccountId>().unwrap(),
                         NO_DEPOSIT,
                         Gas(20_000_000_000_000)
                     ))
@@ -994,7 +1042,7 @@ impl Contract {
 
                 let call = ext_nft::get_burrito_incursion(
                     player.clone().unwrap().burrito_id.to_string(),
-                    BURRITO_CONTRACT.parse::<AccountId>().unwrap(),
+                    self.burrito_contract.parse::<AccountId>().unwrap(),
                     NO_DEPOSIT,
                     Gas(100_000_000_000_000)
                 );
@@ -1003,7 +1051,7 @@ impl Contract {
                     player_incursion.clone(),
                     incursion.clone(),
                     player_id.clone(),
-                    INCURSION_CONTRACT.parse::<AccountId>().unwrap(),
+                    self.incursion_contract.parse::<AccountId>().unwrap(),
                     NO_DEPOSIT,
                     Gas(100_000_000_000_000)
                 );
@@ -1460,7 +1508,7 @@ impl Contract {
                 // Eliminar todas las vidas del burrito
                 ext_nft::decrease_all_burrito_hp(
                     old_battle_room.burrito_player_id.clone(),
-                    BURRITO_CONTRACT.parse::<AccountId>().unwrap(),
+                    self.burrito_contract.parse::<AccountId>().unwrap(),
                     NO_DEPOSIT,
                     GAS_FOR_NFT_TRANSFER_CALL
                 );
@@ -1707,7 +1755,7 @@ impl Contract {
             ).then(ext_nft::reward_player( // Restar una vida al burrito
                 signer_id.clone().to_string(),
                 tokens_to_mint.to_string(),
-                STRWTOKEN_CONTRACT.parse::<AccountId>().unwrap(),
+                self.strw_contract.parse::<AccountId>().unwrap(),
                 NO_DEPOSIT,
                 MIN_GAS_FOR_NFT_TRANSFER_CALL
             ));
