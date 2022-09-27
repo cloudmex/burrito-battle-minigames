@@ -378,10 +378,10 @@ impl Contract {
                 id: self.last_id.clone()+1,
                 status: IncursionStatus::WaitingPlayers,
                 create_time: actual_epoch.clone(),
-                //start_time: actual_epoch+3600000000000,
-                //finish_time: actual_epoch+7200000000000,
-                start_time: actual_epoch+180000000000,
-                finish_time: actual_epoch+480000000000,
+                start_time: actual_epoch+3600000000000,
+                finish_time: actual_epoch+7200000000000,
+                // start_time: actual_epoch+180000000000,
+                // finish_time: actual_epoch+480000000000,
                 players_number: 10,
                 registered_players: 0,
                 win: "".to_string(),
@@ -522,10 +522,10 @@ impl Contract {
                     id: self.last_id+1,
                     status: IncursionStatus::WaitingPlayers,
                     create_time: actual_epoch,
-                    //start_time: actual_epoch+3600000000000,
-                    //finish_time: actual_epoch+7200000000000,
-                    start_time: actual_epoch+180000000000,
-                    finish_time: actual_epoch+480000000000,
+                    start_time: actual_epoch+3600000000000,
+                    finish_time: actual_epoch+7200000000000,
+                    // start_time: actual_epoch+180000000000,
+                    // finish_time: actual_epoch+480000000000,
                     players_number: 10,
                     registered_players: 0,
                     win: "".to_string(),
@@ -605,6 +605,7 @@ impl Contract {
 
     // ELIMINAR TODAS LAS INCURSIONES CREADAS
     pub fn delete_all_incursions(&mut self){
+        self.assert_owner();
         self.incursions.clear();
         self.mb_vs_bp.clear();
         self.player_incursion.clear();
@@ -613,6 +614,7 @@ impl Contract {
 
     // Comenzar incursión
     pub fn start_active_incursion(&mut self) -> Incursion{
+        self.assert_owner();
         let filtered_incursions : HashMap<u64,Incursion> = self.incursions.clone()
         .into_iter()
         .filter(|(_, v)| 
@@ -676,6 +678,7 @@ impl Contract {
 
     // Finalizar incursión
     pub fn finish_active_incursion(&mut self) -> Incursion{
+        self.assert_owner();
         let filtered_incursions : HashMap<u64,Incursion> = self.incursions.clone()
         .into_iter()
         .filter(|(_, v)| 

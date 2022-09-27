@@ -32,7 +32,7 @@ Ejecute el siguiente comando dentro de cada carpeta (contracts) el cual generar�
 Asignamos el identificador de nuestro contrato desplegado a una constante (Sustituir el ID por el del contrato desplegado):
 
     Incursion
-    ID=bb-incursions.testnet
+    ID=incursiones-bb.testnet
     echo $ID
 
     Hospital
@@ -42,7 +42,7 @@ Asignamos el identificador de nuestro contrato desplegado a una constante (Susti
 Los contratos deben inicializarse antes de su uso, por lo que lo haremos con los siguientes comandos dependiendo del contrato:
 
     Incursion
-    near call $ID new '{"owner_account_id": "'$ID'", "treasury_id": "bb-treasury-incursions.testnet", "burrito_contract":"'bb-burritos.testnet'","incursion_contract":"'bb-incursions.testnet'","strw_contract":"'bb-strw.testnet'"}' --accountId $ID
+    near call incursiones-bb.testnet new '{"owner_account_id": "incursiones-bb.testnet", "treasury_id": "incursiones-bb.testnet", "burrito_contract":"burritos-bb.testnet","incursion_contract":"incursiones-bb.testnet","strw_contract":"strw-bb.testnet"}' --accountId incursiones-bb.testnet
 
     Hospital
     near call $ID new '{"owner_account_id": "'$ID'", "treasury_id": "bb-treasury-hospital.testnet", "cost_strw": 1000, "epoch_to_restore": 1, "burrito_contract":"'bb-burritos.testnet'","hospital_contract":"'bb-hospital.testnet'","strw_contract":"'bb-strw.testnet'"}' --accountId $ID
@@ -182,6 +182,15 @@ Actualización de contrato:
     sputnikdao proposal upgrade res/incursion.wasm dev-1663821985384-67341681830038 --daoAcc bb-burrito-battle --accountId yairnava.testnet
 
     sputnikdao proposal upgrade res/hospital.wasm dev-1663825452217-10227475684785 --daoAcc bb-burrito-battle --accountId yairnava.testnet
+
+## Configuración y orden para desplegar
+
+Compilar y desplegar todos los contratos de Burrito Battle Minigames (Incursion).
+    Incursiones: incursiones-bb.testnet
+ 
+Inicializar los contratos de Burrito Battle Minigames (Incursion).
+    
+    near call incursiones-bb.testnet new '{"owner_account_id": "incursiones-bb.testnet", "treasury_id": "incursiones-bb.testnet", "burrito_contract":"burritos-bb.testnet","incursion_contract":"incursiones-bb.testnet","strw_contract":"strw-bb.testnet"}' --accountId incursiones-bb.testnet
 
 ## Construido con 🛠️
 
