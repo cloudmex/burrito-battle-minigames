@@ -32,7 +32,7 @@ Ejecute el siguiente comando dentro de cada carpeta (contracts) el cual generar�
 Asignamos el identificador de nuestro contrato desplegado a una constante (Sustituir el ID por el del contrato desplegado):
 
     Incursion
-    ID=bb-incursions.testnet
+    ID=incursiones-bb.testnet
     echo $ID
 
     Hospital
@@ -42,12 +42,28 @@ Asignamos el identificador de nuestro contrato desplegado a una constante (Susti
 Los contratos deben inicializarse antes de su uso, por lo que lo haremos con los siguientes comandos dependiendo del contrato:
 
     Incursion
-    near call $ID new '{"owner_account_id": "'$ID'", "treasury_id": "bb-treasury-incursions.testnet"}' --accountId $ID
+    near call incursiones-bb.testnet new '{"owner_account_id": "incursiones-bb.testnet", "treasury_id": "incursiones-bb.testnet", "burrito_contract":"burritos-bb.testnet","incursion_contract":"incursiones-bb.testnet","strw_contract":"strw-bb.testnet"}' --accountId incursiones-bb.testnet
 
     Hospital
-    near call $ID new '{"owner_account_id": "'$ID'", "treasury_id": "bb-treasury-hospital.testne", "cost_strw": 1000, "epoch_to_restore": 2}' --accountId $ID
+    near call $ID new '{"owner_account_id": "'$ID'", "treasury_id": "bb-treasury-hospital.testnet", "cost_strw": 1000, "epoch_to_restore": 1, "burrito_contract":"'bb-burritos.testnet'","hospital_contract":"'bb-hospital.testnet'","strw_contract":"'bb-strw.testnet'"}' --accountId $ID
 
 ### Incursion
+
+Cambiar de owner
+
+    near call $ID change_owner '{"owner_account_id": "bb-burrito-battle.sputnikv2.testnet"}' --accountId $ID
+
+Cambiar tesorero
+
+    near call $ID change_treasury '{"treasury_id": "yairnava.testnet"}' --accountId $ID
+
+Cambiar contratos
+
+    near call $ID change_contracts '{"burrito_contract":"'bb-burritos.testnet'","incursion_contract":"'bb-incursions.testnet'","strw_contract":"'bb-strw.testnet'"}' --accountId $ID
+
+Mostrar contratos
+
+    near view $ID show_contracts
 
 Crear una nueva incursión
 
@@ -101,7 +117,7 @@ Combatir Ronda Player vs Mega Burrito [type_move => (1 = Ataque Debil, 2 = Ataqu
 
 Verificar si tiene un burrito para retirar
 
-    near view $ID can_withdraw_burrito '{"account_id": "noobmaster777.testnet"}'
+    near view $ID can_withdraw_burrito '{"account_id": "yairnava.testnet"}'
 
 Recuperar burrito
 
@@ -109,13 +125,41 @@ Recuperar burrito
 
 ### Hospital
 
+Cambiar de owner
+
+    near call $ID change_owner '{"owner_account_id": "bb-burrito-battle.sputnikv2.testnet"}' --accountId $ID
+
+Cambiar contratos
+
+    near call $ID change_contracts '{"burrito_contract":"'bb-burritos.testnet'","hospital_contract":"'bb-hospital.testnet'","strw_contract":"'bb-strw.testnet'"}' --accountId $ID
+
+Mostrar contratos
+
+    near view $ID show_contracts
+
+Cambiar cantidad de epocas para restaurar burrito
+
+    near call $ID change_epoch_restore '{"epoch_to_restore": 1}' --accountId yairnava.testnet
+
+Cambiar costo de capsula
+
+    near call $ID change_strw_cost '{"cost_strw": 100}' --accountId yairnava.testnet
+
+Cambiar tesorero
+
+    near call $ID change_treasury '{"new_treasury": "darkyair.testnet"}' --accountId yairnava.testnet
+
 Consultar información del contrato
 
     near view $ID get_contract_info
 
+Obtener costos de capsula
+
+    near view $ID get_strw_cost
+
 Ingresar burrito en capsula y Transferir nft
 
-    near call dev-1652924595303-59024384289373 nft_transfer_call '{"receiver_id": "dev-1658170507800-83790945510897","token_id":"151", "msg":""}' --accountId yairnava.testnet --depositYocto 1 --gas 300000000000000
+    near call dev-1662497209670-35450562637719 nft_transfer_call '{"receiver_id": "'$ID'","token_id":"5", "msg":"{\"capsule_number\":3}"}' --accountId yairnava.testnet --depositYocto 1 --gas 300000000000000
 
 Consultar capsulas del jugador
 
@@ -123,7 +167,30 @@ Consultar capsulas del jugador
 
 Recuperar burrito
 
-    near call $ID withdraw_burrito_owner '{"capsule_number": 0}' --accountId yairnava.testnet --depositYocto 1 --gas 300000000000000
+    near call $ID withdraw_burrito_owner '{"capsule_number": 2}' --accountId yairnava.testnet --depositYocto 1 --gas 300000000000000
+
+### Crear Propuestas en DAO
+
+Ejecutar Método:
+
+    sputnikdao proposal call dev-1663821985384-67341681830038 change_contracts '{"burrito_contract":"'bb-burritos.testnet'","incursion_contract":"'dev-1663821985384-67341681830038'","strw_contract":"'bb-strw.testnet'"}' --daoAcc bb-burrito-battle --accountId yairnava.testnet
+
+    sputnikdao proposal call dev-1663825452217-10227475684785 change_contracts '{"burrito_contract":"'dev-1662497209670-35450562637719'","incursion_contract":"'dev-1663825452217-10227475684785'","strw_contract":"'bb-strw.testnet'"}' --daoAcc bb-burrito-battle --accountId yairnava.testnet
+
+Actualización de contrato:
+
+    sputnikdao proposal upgrade res/incursion.wasm dev-1663821985384-67341681830038 --daoAcc bb-burrito-battle --accountId yairnava.testnet
+
+    sputnikdao proposal upgrade res/hospital.wasm dev-1663825452217-10227475684785 --daoAcc bb-burrito-battle --accountId yairnava.testnet
+
+## Configuración y orden para desplegar
+
+Compilar y desplegar todos los contratos de Burrito Battle Minigames (Incursion).
+    Incursiones: incursiones-bb.testnet
+ 
+Inicializar los contratos de Burrito Battle Minigames (Incursion).
+    
+    near call incursiones-bb.testnet new '{"owner_account_id": "incursiones-bb.testnet", "treasury_id": "incursiones-bb.testnet", "burrito_contract":"burritos-bb.testnet","incursion_contract":"incursiones-bb.testnet","strw_contract":"strw-bb.testnet"}' --accountId incursiones-bb.testnet
 
 ## Construido con 🛠️
 

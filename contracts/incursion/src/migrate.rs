@@ -12,7 +12,7 @@ impl Contract {
     #[cfg(target_arch = "wasm32")]
     pub fn upgrade(self) {
         use near_sys as sys;
-        // assert!(env::predecessor_account_id() == self.minter_account_id);
+        assert!(env::predecessor_account_id() == self.owner_account_id);
         //input is code:<Vec<u8> on REGISTER 0
         //log!("bytes.length {}", code.unwrap().len());
         const GAS_FOR_UPGRADE: u64 = 20 * TGAS; //gas occupied by this fn
@@ -60,6 +60,10 @@ impl Contract {
             mb_vs_bp: old_state.mb_vs_bp,
             player_incursion: old_state.player_incursion,
             last_id: old_state.last_id,
+
+            burrito_contract: old_state.burrito_contract,
+            incursion_contract: old_state.incursion_contract,
+            strw_contract: old_state.strw_contract
         }
     }
 
