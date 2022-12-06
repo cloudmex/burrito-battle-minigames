@@ -275,6 +275,10 @@ impl Contract {
         log!("strw_contract: {}",self.strw_contract);
     }
 
+    pub fn show_last_id(&self) -> u64{
+        return self.last_id;
+    }
+    
     // Crear nueva incursión
     pub fn create_incursion(&mut self) -> Incursion {
         let actual_epoch = env::block_timestamp();
@@ -378,10 +382,10 @@ impl Contract {
                 id: self.last_id.clone()+1,
                 status: IncursionStatus::WaitingPlayers,
                 create_time: actual_epoch.clone(),
-                start_time: actual_epoch+3600000000000,
-                finish_time: actual_epoch+7200000000000,
-                // start_time: actual_epoch+180000000000,
-                // finish_time: actual_epoch+480000000000,
+                start_time: actual_epoch+3600000000000,  // 1 hr.
+                finish_time: actual_epoch+7200000000000, // 2 hrs.
+                //start_time: actual_epoch+180000000000, // 3 min.
+                //finish_time: actual_epoch+480000000000, // 8 min.
                 players_number: 10,
                 registered_players: 0,
                 win: "".to_string(),
@@ -396,9 +400,9 @@ impl Contract {
             return new_incursion;
 
         } else {
-            let last_incursion = self.incursions.get(&(self.last_id));
-
-            if actual_epoch.clone() <= (last_incursion.clone().unwrap().finish_time+108000000000000) {
+            let last_incursion = self.incursions.get(&(self.last_id));            
+            //if actual_epoch.clone() <= (last_incursion.clone().unwrap().finish_time+120000000000) { // 2 min.
+            if actual_epoch.clone() <= (last_incursion.clone().unwrap().finish_time+108000000000000) {  // 30 hrs.
                 env::panic_str("Aún no pasan 30 horas desde la última incursión");
             }
 
@@ -498,10 +502,10 @@ impl Contract {
                 id: self.last_id+1,
                 status: IncursionStatus::WaitingPlayers,
                 create_time: actual_epoch,
-                start_time: actual_epoch+3600000000000,
-                finish_time: actual_epoch+7200000000000,
-                // start_time: actual_epoch+180000000000,
-                // finish_time: actual_epoch+480000000000,
+                start_time: actual_epoch+3600000000000,  // 1 hr.
+                finish_time: actual_epoch+7200000000000, // 2 hrs.
+                //start_time: actual_epoch+180000000000, // 3 min.
+                //finish_time: actual_epoch+480000000000, // 8 min.
                 players_number: 10,
                 registered_players: 0,
                 win: "".to_string(),
@@ -520,13 +524,9 @@ impl Contract {
 
     // Obtener la incursión activa
     pub fn get_active_incursion(&self) -> Incursion{
-        let filtered_incursions : HashMap<u64,Incursion> = self.incursions.clone()
-        .into_iter()
-        .filter(|(_, v)| 
-            (v.status == IncursionStatus::WaitingPlayers || v.status == IncursionStatus::InProgress || v.status == IncursionStatus::Finished))
-        .collect();
+        let last_incursion = self.incursions.get(&(self.last_id));
 
-        if filtered_incursions.len() == 0 {
+        if last_incursion.is_none() {
             let actual_epoch = env::block_timestamp();
             let null_incursion = Incursion{
                 id: 0,
@@ -553,13 +553,7 @@ impl Contract {
 
             return null_incursion;
         } else {
-            let mut key : u64 = 0;
-
-            for (k, v) in filtered_incursions.iter() {
-                key = k.clone();
-            }
-
-            let info = filtered_incursions.get(&key).unwrap();
+            let info = last_incursion.clone().unwrap();
 
             let active_incursion = Incursion{
                 id: info.id.clone(),
