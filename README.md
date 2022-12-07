@@ -36,7 +36,7 @@ Asignamos el identificador de nuestro contrato desplegado a una constante (Susti
     echo $ID
 
     Hospital
-    ID=bb-hospital.testnet
+    ID=dev-1663091906107-11804226544868
     echo $ID
 
 Los contratos deben inicializarse antes de su uso, por lo que lo haremos con los siguientes comandos dependiendo del contrato:
@@ -59,7 +59,7 @@ Cambiar tesorero
 
 Cambiar contratos
 
-    near call $ID change_contracts '{"burrito_contract":"'bb-burritos.testnet'","incursion_contract":"'bb-incursions.testnet'","strw_contract":"'bb-strw.testnet'"}' --accountId $ID
+    near call $ID change_contracts '{"burrito_contract":"'burritos-bb.testnet'","incursion_contract":"'incursiones-bb.testnet'","strw_contract":"'bb-strw.testnet'"}' --accountId $ID
 
 Mostrar contratos
 

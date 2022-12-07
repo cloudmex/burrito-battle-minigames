@@ -275,6 +275,10 @@ impl Contract {
         log!("strw_contract: {}",self.strw_contract);
     }
 
+    pub fn show_last_id(&self) -> u64{
+        return self.last_id;
+    }
+    
     // Crear nueva incursión
     pub fn create_incursion(&mut self) -> Incursion {
         let actual_epoch = env::block_timestamp();
@@ -378,10 +382,10 @@ impl Contract {
                 id: self.last_id.clone()+1,
                 status: IncursionStatus::WaitingPlayers,
                 create_time: actual_epoch.clone(),
-                start_time: actual_epoch+3600000000000,
-                finish_time: actual_epoch+7200000000000,
-                // start_time: actual_epoch+180000000000,
-                // finish_time: actual_epoch+480000000000,
+                start_time: actual_epoch+3600000000000,  // 1 hr.
+                finish_time: actual_epoch+7200000000000, // 2 hrs.
+                //start_time: actual_epoch+180000000000, // 3 min.
+                //finish_time: actual_epoch+480000000000, // 8 min.
                 players_number: 10,
                 registered_players: 0,
                 win: "".to_string(),
@@ -396,161 +400,133 @@ impl Contract {
             return new_incursion;
 
         } else {
-            let last_incursion = self.incursions.get(&(self.last_id));
-
-            if last_incursion.clone().unwrap().status == IncursionStatus::WaitingPlayers || last_incursion.clone().unwrap().status == IncursionStatus::InProgress{
-                log!("Hay una incursión activa");
-
-                let info = last_incursion.clone().unwrap();
-
-                let old_incursion = Incursion{
-                    id: info.id.clone(),
-                    status: info.status.clone(),
-                    create_time: info.create_time.clone(),
-                    start_time: info.start_time.clone(),
-                    finish_time: info.finish_time.clone(),
-                    players_number: info.players_number.clone(),
-                    registered_players: info.registered_players.clone(),
-                    win: info.win.clone(),
-                    mega_burrito: info.mega_burrito.clone(),
-                    players: info.players.clone(),
-                    rewards: info.rewards.clone()
-                };
-
-                return old_incursion;
-            } 
-            else {
-                log!("No Hay ninguna incursión activa");
-
-                if actual_epoch.clone() <= (last_incursion.clone().unwrap().finish_time+108000000000000) {
-                    env::panic_str("Aún no pasan 30 horas desde la última incursión");
-                }
-
-                let mut mega_burrito = MegaBurrito {
-                    name : "Cerberus".to_string(),
-                    burrito_type : "Fuego".to_string(),
-                    start_health : "200".to_string(),
-                    health : "200".to_string(),
-                    attack : "15".to_string(),
-                    defense : "15".to_string(),
-                    speed : "15".to_string(),
-                    level : "40".to_string()
-                };
-    
-                let rand_type = *env::random_seed().get(0).unwrap();
-                let rand_name = *env::random_seed().get(1).unwrap();
-                let mut burrito_type: String = "Fuego".to_string();
-                let mut burrito_name: String = "Cerberus".to_string();
-
-                // Obtener tipo
-                if rand_type > 0 &&  rand_type <= 51 {
-                    burrito_type = "Fuego".to_string();
-                }
-                if rand_type >= 52 &&  rand_type <= 102 {
-                    burrito_type = "Agua".to_string();
-                }
-                if rand_type >= 103 &&  rand_type <= 153 {
-                    burrito_type = "Planta".to_string();
-                }
-                if rand_type >= 154 &&  rand_type <= 204 {
-                    burrito_type = "Eléctrico".to_string();
-                }
-                if rand_type >= 205 &&  rand_type < 255 {
-                    burrito_type = "Volador".to_string();
-                }
-
-                // Obtener nombre
-                if rand_type > 0 &&  rand_type <= 85 {
-                    burrito_name = "Cerberus".to_string();
-                }
-                if rand_type >= 86 &&  rand_type <= 170 {
-                    burrito_name = "Hades".to_string();
-                }
-                if rand_type >= 171 &&  rand_type < 255 {
-                    burrito_name = "Mictlantecuhtli".to_string();
-                }
-
-                mega_burrito.name = burrito_name;
-                let rand_rewards = *env::random_seed().get(2).unwrap();
-                let mut incursion_rewards: u64 = 0;
-                
-                // Obtener recompensa total aleatoria para la incursion 70,000 - 200,000
-                if rand_rewards > 0 &&  rand_rewards < 18 {
-                    incursion_rewards = 70000;
-                }
-                if rand_rewards >= 18 &&  rand_rewards < 36 {
-                    incursion_rewards = 80000;
-                }
-                if rand_rewards >= 36 &&  rand_rewards < 54 {
-                    incursion_rewards = 90000;
-                }
-                if rand_rewards >= 54 &&  rand_rewards < 72 {
-                    incursion_rewards = 100000;
-                }
-                if rand_rewards >= 72 &&  rand_rewards < 90 {
-                    incursion_rewards = 110000;
-                }
-                if rand_rewards >= 90 &&  rand_rewards < 108 {
-                    incursion_rewards = 120000;
-                }
-                if rand_rewards >= 108 &&  rand_rewards < 126 {
-                    incursion_rewards = 130000;
-                }
-                if rand_rewards >= 126 &&  rand_rewards < 144 {
-                    incursion_rewards = 140000;
-                }
-                if rand_rewards >= 144 &&  rand_rewards < 162 {
-                    incursion_rewards = 150000;
-                }
-                if rand_rewards >= 162 &&  rand_rewards < 180 {
-                    incursion_rewards = 160000;
-                }
-                if rand_rewards >= 180 &&  rand_rewards < 198 {
-                    incursion_rewards = 170000;
-                }
-                if rand_rewards >= 198 &&  rand_rewards < 216 {
-                    incursion_rewards = 180000;
-                }
-                if rand_rewards >= 216 &&  rand_rewards < 234 {
-                    incursion_rewards = 190000;
-                }
-                if rand_rewards >= 234 &&  rand_rewards < 255 {
-                    incursion_rewards = 200000;
-                }
-    
-                let new_incursion = Incursion{
-                    id: self.last_id+1,
-                    status: IncursionStatus::WaitingPlayers,
-                    create_time: actual_epoch,
-                    start_time: actual_epoch+3600000000000,
-                    finish_time: actual_epoch+7200000000000,
-                    // start_time: actual_epoch+180000000000,
-                    // finish_time: actual_epoch+480000000000,
-                    players_number: 10,
-                    registered_players: 0,
-                    win: "".to_string(),
-                    mega_burrito: mega_burrito,
-                    players: [].to_vec(),
-                    rewards: incursion_rewards
-                };
-    
-                // Crear incursion
-                self.incursions.insert(self.last_id+1,new_incursion.clone());
-                self.last_id += 1;
-                return new_incursion;
+            let last_incursion = self.incursions.get(&(self.last_id));            
+            //if actual_epoch.clone() <= (last_incursion.clone().unwrap().finish_time+120000000000) { // 2 min.
+            if actual_epoch.clone() <= (last_incursion.clone().unwrap().finish_time+108000000000000) {  // 30 hrs.
+                env::panic_str("Aún no pasan 30 horas desde la última incursión");
             }
+
+            let mut mega_burrito = MegaBurrito {
+                name : "Cerberus".to_string(),
+                burrito_type : "Fuego".to_string(),
+                start_health : "200".to_string(),
+                health : "200".to_string(),
+                attack : "15".to_string(),
+                defense : "15".to_string(),
+                speed : "15".to_string(),
+                level : "40".to_string()
+            };
+
+            let rand_type = *env::random_seed().get(0).unwrap();
+            let rand_name = *env::random_seed().get(1).unwrap();
+            let mut burrito_type: String = "Fuego".to_string();
+            let mut burrito_name: String = "Cerberus".to_string();
+
+            // Obtener tipo
+            if rand_type > 0 &&  rand_type <= 51 {
+                burrito_type = "Fuego".to_string();
+            }
+            if rand_type >= 52 &&  rand_type <= 102 {
+                burrito_type = "Agua".to_string();
+            }
+            if rand_type >= 103 &&  rand_type <= 153 {
+                burrito_type = "Planta".to_string();
+            }
+            if rand_type >= 154 &&  rand_type <= 204 {
+                burrito_type = "Eléctrico".to_string();
+            }
+            if rand_type >= 205 &&  rand_type < 255 {
+                burrito_type = "Volador".to_string();
+            }
+
+            // Obtener nombre
+            if rand_type > 0 &&  rand_type <= 85 {
+                burrito_name = "Cerberus".to_string();
+            }
+            if rand_type >= 86 &&  rand_type <= 170 {
+                burrito_name = "Hades".to_string();
+            }
+            if rand_type >= 171 &&  rand_type < 255 {
+                burrito_name = "Mictlantecuhtli".to_string();
+            }
+
+            mega_burrito.name = burrito_name;
+            let rand_rewards = *env::random_seed().get(2).unwrap();
+            let mut incursion_rewards: u64 = 0;
+            
+            // Obtener recompensa total aleatoria para la incursion 70,000 - 200,000
+            if rand_rewards > 0 &&  rand_rewards < 18 {
+                incursion_rewards = 70000;
+            }
+            if rand_rewards >= 18 &&  rand_rewards < 36 {
+                incursion_rewards = 80000;
+            }
+            if rand_rewards >= 36 &&  rand_rewards < 54 {
+                incursion_rewards = 90000;
+            }
+            if rand_rewards >= 54 &&  rand_rewards < 72 {
+                incursion_rewards = 100000;
+            }
+            if rand_rewards >= 72 &&  rand_rewards < 90 {
+                incursion_rewards = 110000;
+            }
+            if rand_rewards >= 90 &&  rand_rewards < 108 {
+                incursion_rewards = 120000;
+            }
+            if rand_rewards >= 108 &&  rand_rewards < 126 {
+                incursion_rewards = 130000;
+            }
+            if rand_rewards >= 126 &&  rand_rewards < 144 {
+                incursion_rewards = 140000;
+            }
+            if rand_rewards >= 144 &&  rand_rewards < 162 {
+                incursion_rewards = 150000;
+            }
+            if rand_rewards >= 162 &&  rand_rewards < 180 {
+                incursion_rewards = 160000;
+            }
+            if rand_rewards >= 180 &&  rand_rewards < 198 {
+                incursion_rewards = 170000;
+            }
+            if rand_rewards >= 198 &&  rand_rewards < 216 {
+                incursion_rewards = 180000;
+            }
+            if rand_rewards >= 216 &&  rand_rewards < 234 {
+                incursion_rewards = 190000;
+            }
+            if rand_rewards >= 234 &&  rand_rewards < 255 {
+                incursion_rewards = 200000;
+            }
+
+            let new_incursion = Incursion{
+                id: self.last_id+1,
+                status: IncursionStatus::WaitingPlayers,
+                create_time: actual_epoch,
+                start_time: actual_epoch+3600000000000,  // 1 hr.
+                finish_time: actual_epoch+7200000000000, // 2 hrs.
+                //start_time: actual_epoch+180000000000, // 3 min.
+                //finish_time: actual_epoch+480000000000, // 8 min.
+                players_number: 10,
+                registered_players: 0,
+                win: "".to_string(),
+                mega_burrito: mega_burrito,
+                players: [].to_vec(),
+                rewards: incursion_rewards
+            };
+
+            // Crear incursion
+            self.incursions.insert(self.last_id+1,new_incursion.clone());
+            self.last_id += 1;
+            return new_incursion;
+            
         }
     }
 
     // Obtener la incursión activa
     pub fn get_active_incursion(&self) -> Incursion{
-        let filtered_incursions : HashMap<u64,Incursion> = self.incursions.clone()
-        .into_iter()
-        .filter(|(_, v)| 
-            (v.status == IncursionStatus::WaitingPlayers || v.status == IncursionStatus::InProgress || v.status == IncursionStatus::Finished))
-        .collect();
+        let last_incursion = self.incursions.get(&(self.last_id));
 
-        if filtered_incursions.len() == 0 {
+        if last_incursion.is_none() {
             let actual_epoch = env::block_timestamp();
             let null_incursion = Incursion{
                 id: 0,
@@ -577,13 +553,7 @@ impl Contract {
 
             return null_incursion;
         } else {
-            let mut key : u64 = 0;
-
-            for (k, v) in filtered_incursions.iter() {
-                key = k.clone();
-            }
-
-            let info = filtered_incursions.get(&key).unwrap();
+            let info = last_incursion.clone().unwrap();
 
             let active_incursion = Incursion{
                 id: info.id.clone(),
@@ -1261,7 +1231,13 @@ impl Contract {
         // Verificar si el tiempo de la incursion no ah terminado
         let actual_epoch = env::block_timestamp();
         if actual_epoch > incursion_info.finish_time.clone() {
-            env::panic_str("La incursion ya terminó, no puedes realizar ataques");       
+            let incursion_round = IncrusionRound {
+                incursion: incursion_info,
+                room: battle_room.clone()
+            };
+    
+            return incursion_round;
+           // env::panic_str("La incursion ya terminó, no puedes realizar ataques");       
         }
 
         if (type_move == "1" || type_move == "2") && battle_room.turn == "CPU"{
@@ -1507,14 +1483,6 @@ impl Contract {
                 // Guardar registro general de la batalla (Jugador, Burrito, Estatus)
                 old_battle_room.health = new_health_burrito_defender.to_string();                
                 self.mb_vs_bp.insert(token_owner_id.clone(),old_battle_room.clone());
-                
-                // Eliminar todas las vidas del burrito
-                ext_nft::decrease_all_burrito_hp(
-                    old_battle_room.burrito_player_id.clone(),
-                    self.burrito_contract.parse::<AccountId>().unwrap(),
-                    NO_DEPOSIT,
-                    GAS_FOR_NFT_TRANSFER_CALL
-                );
 
                 env::log(
                     json!(old_battle_room)
@@ -1724,14 +1692,19 @@ impl Contract {
 
         if incursion.mega_burrito.health.parse::<f32>().unwrap() > 0.0 {
             log!("No vencieron al mega burrito");
-            // Recuperar al burrito
-            ext_nft::nft_transfer(
+
+            ext_nft::decrease_all_burrito_hp(
+                incursion_player.burrito_id.clone(),
+                self.burrito_contract.parse::<AccountId>().unwrap(),
+                NO_DEPOSIT,
+                GAS_FOR_NFT_TRANSFER_CALL
+            ).then(ext_nft::nft_transfer( // Restar una vida al burrito
                 signer_id.clone(),
                 incursion_player.burrito_id.clone(),
                 incursion_player.burrito_contract.parse::<AccountId>().unwrap(),
                 deposit,
                 MIN_GAS_FOR_NFT_TRANSFER_CALL
-            );
+            ));
 
             // Remover registro de burrito de jugador
             self.player_incursion.remove(&signer_id.clone());
