@@ -303,30 +303,54 @@ impl Contract {
             let mut burrito_name: String = "Cerberus".to_string();
 
             // Obtener tipo
-            if rand_type > 0 &&  rand_type <= 51 {
+            if rand_type >= 0 &&  rand_type < 26 {
                 burrito_type = "Fuego".to_string();
             }
-            if rand_type >= 52 &&  rand_type <= 102 {
+            if rand_type >= 26 &&  rand_type < 52 {
                 burrito_type = "Agua".to_string();
             }
-            if rand_type >= 103 &&  rand_type <= 153 {
+            if rand_type >= 52 &&  rand_type < 78 {
                 burrito_type = "Planta".to_string();
             }
-            if rand_type >= 154 &&  rand_type <= 204 {
+            if rand_type >= 78 &&  rand_type < 104 {
                 burrito_type = "Eléctrico".to_string();
             }
-            if rand_type >= 205 &&  rand_type < 255 {
+            if rand_type >= 104 &&  rand_type < 130 {
+                burrito_type = "Volador".to_string();
+            }
+            if rand_type >= 130 &&  rand_type < 156 {
+                burrito_type = "Fuego".to_string();
+            }
+            if rand_type >= 156 &&  rand_type < 182 {
+                burrito_type = "Agua".to_string();
+            }
+            if rand_type >= 182 &&  rand_type < 208 {
+                burrito_type = "Planta".to_string();
+            }
+            if rand_type >= 208 &&  rand_type < 234 {
+                burrito_type = "Eléctrico".to_string();
+            }
+            if rand_type >= 234 &&  rand_type <= 255 {
                 burrito_type = "Volador".to_string();
             }
 
             // Obtener nombre
-            if rand_type > 0 &&  rand_type <= 85 {
+            if rand_type >= 0 &&  rand_type < 43 {
                 burrito_name = "Cerberus".to_string();
             }
-            if rand_type >= 86 &&  rand_type <= 170 {
+            if rand_type >= 43 &&  rand_type < 86 {
                 burrito_name = "Hades".to_string();
             }
-            if rand_type >= 171 &&  rand_type < 255 {
+            if rand_type >= 86 &&  rand_type < 129 {
+                burrito_name = "Mictlantecuhtli".to_string();
+            }
+            if rand_type >= 129 &&  rand_type < 172 {
+                burrito_name = "Cerberus".to_string();
+            }
+            if rand_type >= 172 &&  rand_type < 215 {
+                burrito_name = "Hades".to_string();
+            }
+            if rand_type >= 215 &&  rand_type <= 255 {
                 burrito_name = "Mictlantecuhtli".to_string();
             }
 
@@ -1653,6 +1677,9 @@ impl Contract {
                 deposit,
                 MIN_GAS_FOR_NFT_TRANSFER_CALL
             );
+
+            // Remover registro de burrito de jugador
+            self.player_incursion.remove(&signer_id.clone());
 
             let rewards = Rewards{
                 complete : true,
